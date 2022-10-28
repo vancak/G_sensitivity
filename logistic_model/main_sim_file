@@ -1,0 +1,247 @@
+##################################################################
+### logit causal model P(Y=1) = 0.3; alpha = 0, 0.5; psi = 1.5 ###
+##################################################################
+
+library(nleqslv)
+
+source("fun_alpha_functions_logmod.R")
+source("cov_mat_h_psi_debug.R")
+# source("cov_mat_logmod.R")
+source("dh_functions_logmod.R")
+
+n = 1000
+m = 100
+
+cc = 0.2
+jump = 0.02
+
+alpha_range = seq( -cc, cc, by = jump )
+
+# simulation 
+psii = matrix(NA, ncol = 4, nrow = m * length(alpha_range))
+sd_g = matrix(NA, ncol = 4, nrow = m * length(alpha_range))
+
+set.seed(1)
+
+for (i in 1:m) {
+  
+  # set the marginal P(Z=1)
+  z = rbinom(n, 1, 0.5)
+  
+  # mean(z)
+  gamz = 3
+  
+  # set the marginal P(X=1) = p_x11
+  gam0 = fun_gam0(p_x11 = 0.6, gamzz = gamz )
+
+  x = rbinom(n, 1, prob = plogis( gam0 + gamz * z ) )  
+  
+  # summary(glm( x ~ z, family = binomial() ))
+  
+  # mean(x)
+  
+  ########################################################
+  ### alpha = 0, psi = 1.5, P(Y=1) = 0.3, P(X=1) = 0.6 ###
+  ########################################################
+  
+  b0_bxz = nleqslv(x = c(0, 0), 
+                   fn = fun_alpha_b0_bxz_py, alpha = 0, psi = 1.5, gamma = c(gam0, gamz), py = 0.8)$x
+  
+  beta  = c( b0_bxz[1], 1, 1, b0_bxz[2] )
+  
+  y     = rbinom(n, 1, plogis( beta[1] + beta[2]*x + beta[3]*z + beta[4]*x*z ) )
+  
+  # mean(y)
+  
+  y_mod = glm( y ~ x + z + x*z, family = "binomial")
+  
+  alpha_range = seq( -cc, cc, by = jump )
+
+  
+  for (j in 1:length(alpha_range)) {
+    
+    psii[i + (j - 1) * m, 1] = nleqslv(x = 0, fn = dh_alpha,  alpha = alpha_range[j], beta = coef(y_mod) )$x
+    
+    sd_g[i + (j - 1) * m, 1] = sqrt(vcov_alph_psi(psi   = psii[i + (j - 1) * m, 1],
+                                                alpha = alpha_range[j],
+                                                beta  = coef(y_mod),
+                                                z = z,
+                                                x = x, 
+                                                y = y,
+                                                n = n)[6, 6])
+    
+  }
+  
+  ##########################################################
+  ### alpha = 0.5, psi = 1.5, P(Y=1) = 0.3, P(X=1) = 0.6 ###
+  ##########################################################
+  
+  b0_bxz = nleqslv(x = c(0,0),
+                   fn = fun_alpha_b0_bxz_py, alpha = 0.5, psi = 1.5, gamma = c(gam0, gamz), py = 0.8)$x
+  
+  beta   = c( b0_bxz[1], 1, 1, b0_bxz[2] )
+  
+  y      = rbinom(n, 1, plogis( beta[1] + beta[2]*x + beta[3]*z + beta[4]*x*z ) )
+
+  y_mod = glm( y ~ x + z + x*z, family = "binomial")
+  
+  # mean(y)
+  
+  alpha_range = seq( 0.5 - cc, 0.5 + cc, by = jump )
+  
+  for (j in 1:length(alpha_range)) {
+    
+    psii[i + (j - 1) * m, 2] = nleqslv(x = 0, fn = dh_alpha, alpha = alpha_range[j], beta = coef(y_mod) )$x
+    
+    sd_g[i + (j - 1) * m, 2] = sqrt(vcov_alph_psi(psi   = psii[i + (j - 1) * m, 2],
+                                                alpha = alpha_range[j],
+                                                beta  = coef(y_mod), 
+                                                z = z,
+                                                x = x, 
+                                                y = y,
+                                                n = n)[6, 6])
+    
+  }
+  
+  ######################################################
+  ### alpha = 0, psi = 0, P(Y=1) = 0.3, P(X=1) = 0.6 ###
+  ######################################################
+  
+  b0_bxz = nleqslv(x = c(0, 0),
+                   fn = fun_alpha_b0_bxz_py, alpha = 0, psi = 0, gamma = c(gam0, gamz), py = 0.8)$x
+  
+  beta  = c( b0_bxz[1], 1, 1, b0_bxz[2] )
+  
+  y     = rbinom(n, 1, plogis( beta[1] + beta[2]*x + beta[3]*z + beta[4]*x*z ) )
+  
+  y_mod = glm( y ~ x + z + x*z, family = "binomial")
+  
+  # mean(y)
+  
+  alpha_range = seq( -cc, cc, by = jump )
+  
+  for (j in 1:length(alpha_range)) {
+    
+    psii[i + (j - 1) * m, 3] = nleqslv(x = 0, fn = dh_alpha, alpha = alpha_range[j], beta = coef(y_mod) )$x
+    
+    sd_g[i + (j - 1) * m, 3] = sqrt(vcov_alph_psi(psi   = psii[i + (j - 1) * m, 3],
+                                                alpha = alpha_range[j],
+                                                beta  = coef(y_mod),
+                                                z = z,
+                                                x = x, 
+                                                y = y,
+                                                n = n)[6, 6])
+    
+  }
+  
+  ########################################################
+  ### alpha = 0.5, psi = 0, P(Y=1) = 0.3, P(X=1) = 0.6 ###
+  ########################################################
+  
+  b0_bxz = nleqslv(x = c(0, 0),
+                   fn = fun_alpha_b0_bxz_py, alpha = 0.5, psi = 0, gamma = c(gam0, gamz), py = 0.8)$x
+  
+  beta  = c( b0_bxz[1], 1, 1, b0_bxz[2] )
+  
+  y     = rbinom(n, 1, plogis( beta[1] + beta[2]*x + beta[3]*z + beta[4]*x*z ) )
+  
+  y_mod = glm( y ~ x + z + x*z, family = "binomial")
+  
+  # mean(y)
+  
+  alpha_range = seq( 0.5 - cc, 0.5 + cc, by = jump )
+  
+  for (j in 1:length(alpha_range)) {
+    
+    psii[i + (j - 1) * m, 4] = nleqslv(x = 0, fn = dh_alpha, alpha = alpha_range[j], beta = coef(y_mod) )$x
+    
+    sd_g[i + (j - 1) * m, 4] = sqrt(vcov_alph_psi(psi   = psii[i + (j - 1) * m, 4],
+                                                alpha = alpha_range[j],
+                                                beta  = coef(y_mod), 
+                                                z = z, 
+                                                x = x, 
+                                                y = y,
+                                                n = n)[6, 6])
+    
+  }
+  
+  print(i)
+  
+}
+
+### data tables for simulation summary
+
+apply(psii, 2, mean)
+summary(psii)
+
+bb = numeric()
+
+for (k in 1:length(alpha_range)) {
+  b1 = rep(alpha_range[k], m)
+  bb = c(bb, b1)
+}
+
+table(bb)
+
+psii = data.frame(psii)
+sd_g = data.frame(sd_g)
+
+psii$alpha = bb
+
+names(psii) = c("psi0_1.5", "psi0.5_1.5", "psi0_0", "psi0.5_0", "alpha")
+
+names(sd_g) = c("sd0_1.5", "sd0.5_1.5", "sd0_0", "sd0.5_0")
+
+psi_sd_dat = cbind( psii, sd_g )
+
+### coverage prob alpha = 0 & psi = 1.5
+psi_sd_dat$l0_1.5 = psi_sd_dat$psi0_1.5 - 1.96 * psi_sd_dat$sd0_1.5 
+psi_sd_dat$u0_1.5 = psi_sd_dat$psi0_1.5 + 1.96 * psi_sd_dat$sd0_1.5 
+
+cp0_1.5 = numeric()
+
+for (j in 1:length(alpha_range)) {
+  cp0_1.5[j] = mean( ifelse( psi_sd_dat$l0_1.5[psi_sd_dat$alpha == alpha_range[j]] < 1.5 &
+                               1.5 < psi_sd_dat$u0_1.5[psi_sd_dat$alpha == alpha_range[j]], 1, 0 ), na.rm = T )
+}
+
+### coverage prob alpha = 0.5 & psi = 1.5
+psi_sd_dat$l0.5_1.5 = psi_sd_dat$psi0.5_1.5 - 1.96 * psi_sd_dat$sd0.5_1.5 
+psi_sd_dat$u0.5_1.5 = psi_sd_dat$psi0.5_1.5 + 1.96 * psi_sd_dat$sd0.5_1.5 
+
+cp0.5_1.5 = numeric()
+
+for (j in 1:length(alpha_range)) {
+  cp0.5_1.5[j] = mean( ifelse( psi_sd_dat$l0.5_1.5[psi_sd_dat$alpha == alpha_range[j]] < 1.5 &
+                                 1.5 < psi_sd_dat$u0.5_1.5[psi_sd_dat$alpha == alpha_range[j]], 1, 0 ) )
+}
+
+### coverage prob alpha = 0 & psi = 0
+psi_sd_dat$l0_0 = psi_sd_dat$psi0_0 - 1.96 * psi_sd_dat$sd0_0 
+psi_sd_dat$u0_0 = psi_sd_dat$psi0_0 + 1.96 * psi_sd_dat$sd0_0 
+
+cp0_0 = numeric()
+
+for (j in 1:length(alpha_range)) {
+  cp0_0[j] = mean( ifelse( psi_sd_dat$l0_0[psi_sd_dat$alpha == alpha_range[j]] < 0 &
+                             0   < psi_sd_dat$u0_0[psi_sd_dat$alpha == alpha_range[j]], 1, 0 ) )
+}
+
+### coverage prob alpha = 0.5 & psi = 0
+psi_sd_dat$l0.5_0 = psi_sd_dat$psi0.5_0 - 1.96 * psi_sd_dat$sd0.5_0 
+psi_sd_dat$u0.5_0 = psi_sd_dat$psi0.5_0 + 1.96 * psi_sd_dat$sd0.5_0 
+
+cp0.5_0 = numeric()
+
+for (j in 1:length(alpha_range)) {
+  cp0.5_0[j] = mean( ifelse( psi_sd_dat$l0.5_0[psi_sd_dat$alpha == alpha_range[j]] < 0 &
+                               0   < psi_sd_dat$u0.5_0[psi_sd_dat$alpha == alpha_range[j]], 1, 0 ) )
+}
+
+# data with alpha and coverage probs
+dat_cp = data.frame( alpha_range0 = seq( -cc, cc, by = jump ), 
+                     cp0_1.5,
+                     cp0_0,
+                     alpha_range0.5 = seq( 0.5 - cc, 0.5 + cc, by = jump ),
+                     cp0.5_1.5,
+                     cp0.5_0 )
