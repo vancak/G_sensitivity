@@ -1,0 +1,63 @@
+#################
+### BIAS PLOT ###
+#################
+
+### ggplot
+library(cowplot)
+library(ggplot2)
+
+
+b0_1.5 = ggplot(psi_sd_dat, aes(x = alpha - 0.5, y = psi0_1.5, group = alpha)) +  
+  geom_boxplot(width = 0.01, fill = "grey") +
+  geom_vline(xintercept = 0,    linetype = "dashed", col = "red")    +
+  geom_hline(yintercept = 1.5, linetype = "dashed", col = "red")     +
+  xlab(expression(alpha)) + ylab(expression(hat(psi)[G]~"("~alpha~")"))           +
+  ggtitle(alpha~"=0,"~psi~"=1.5,"~p[y]~"=0.8,"~p[x]~"=0.6")  +
+  theme_minimal_grid() + 
+  theme(plot.title       = element_text(hjust = 0.5, size = 25),
+                      axis.text.x = element_text(size = 20),
+                      axis.text.y = element_text(size = 20), 
+                      axis.title = element_text(size = 20))
+
+  
+b0.5_1.5 = ggplot(psi_sd_dat, aes(x = alpha, y = psi0.5_1.5, group = alpha)) +  
+  geom_boxplot(width = 0.01, fill = "grey") +
+  geom_vline(xintercept = 0.5,    linetype="dashed", col = "red")    +
+  geom_hline(yintercept = 1.5, linetype="dashed", col = "red")     +
+  xlab(expression(alpha)) + ylab(expression(hat(psi)[G]~"("~alpha~")"))           +
+  ggtitle(alpha~"=0.5,"~psi~"=1.5,"~p[y]~"=0.8,"~p[x]~"=0.6")  +
+  theme_minimal_grid() + 
+  theme(plot.title       = element_text(hjust = 0.5, size = 25),
+        axis.text.x = element_text(size=20),
+        axis.text.y = element_text(size=20), 
+        axis.title=element_text(size=20))
+
+
+b0_0 = ggplot(psi_sd_dat, aes(x = alpha - 0.5, y = psi0_0, group = alpha)) +  
+  geom_boxplot(width = 0.01, fill = "grey") +
+  geom_vline(xintercept = 0,    linetype="dashed", col = "red")    +
+  geom_hline(yintercept = 0, linetype="dashed", col = "red")     +
+  xlab(expression(alpha)) + ylab(expression(hat(psi)[G]~"("~alpha~")"))           +
+  ggtitle(alpha~"=0,"~psi~"=0,"~p[y]~"=0.8,"~p[x]~"=0.6")  +
+  theme_minimal_grid() + 
+  theme(plot.title       = element_text(hjust = 0.5, size = 25),
+        axis.text.x = element_text(size=20),
+        axis.text.y = element_text(size=20), 
+        axis.title=element_text(size=20))
+
+
+b0.5_0 = ggplot(psi_sd_dat, aes(x = alpha, y = psi0_0, group = alpha)) +  
+  geom_boxplot(width = 0.01, fill = "grey") +
+  geom_vline(xintercept = 0.5,    linetype="dashed", col = "red")    +
+  geom_hline(yintercept = 0, linetype="dashed", col = "red")     +
+  xlab(expression(alpha)) + ylab(expression(hat(psi)[G]~"("~alpha~")"))           +
+  ggtitle(alpha~"=0.5,"~psi~"=0,"~p[y]~"=0.8,"~p[x]~"=0.6")  +
+  theme_minimal_grid() + 
+  theme(plot.title       = element_text(hjust = 0.5, size = 25),
+        axis.text.x = element_text(size=20),
+        axis.text.y = element_text(size=20), 
+        axis.title=element_text(size=20))
+
+
+plot_grid(b0_1.5, b0.5_1.5, b0_0, b0.5_0,
+          ncol = 2, nrow = 2)
