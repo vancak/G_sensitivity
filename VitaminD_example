@@ -1,0 +1,82 @@
+######################################
+### Vitamin D Example ################
+### Sensitivity Analysis of G-est. ###
+######################################
+
+library(ivtools)
+library(xlsx)
+library(nleqslv)
+
+data(VitD)
+
+# write.xlsx(VitD, "VitD.xlsx", row.names = F)
+mu_zz = mean(VitD$filaggrin) 
+
+VitD$vitd_std <- (VitD$vitd - 20)/20
+
+### G-estimation of the causal effect (psi) of vitaminD (X) on death (Y),
+### the instrument in fillagrin (Z)
+### Using ivtools (alpha = 0); assuming valid IV ###########################
+# Instrument model 
+z_mod = glm( filaggrin ~ 1, data = VitD, family = "binomial" )
+
+# Exposure model
+x_mod = glm( vitd_std ~ filaggrin, data = VitD )
+
+# Outcome model 
+y_mod = glm( death ~ vitd_std + filaggrin + filaggrin*vitd_std,
+             data   = VitD,
+             family = "binomial" )
+
+### The G-est. of psi
+psi_mod = ivglm(estmethod = "g", 
+                X         = "vitd_std",
+                Y         = "death",
+                fitZ.L    = z_mod,
+#                fitX.L    = x_mod, 
+                fitY.LZX  = y_mod,
+                data      = VitD, 
+                link      = "logit",
+                vcov.fit  = T )
+
+summary(psi_mod)
+
+
+# estimating equation for psi
+dh_D = function(psi, alpha, beta){ 
+  sum( ( VitD$filaggrin - mean(VitD$filaggrin) ) * 
+         expit(beta[1]          +   beta[2]*VitD$vitd_std + 
+                 beta[3]*VitD$filaggrin +   beta[4]*VitD$vitd_std*VitD$filaggrin - 
+                 psi * VitD$vitd_std    -   alpha * VitD$filaggrin) )  
+} 
+
+# fixing alpha and beta vector; solving for psi 
+dh_alpha_D = function(x, alpha, beta)
+{
+  dh_D(psi = x, alpha, beta)
+} 
+
+# G-est as a function of alpha; alpha = 0
+nleqslv( x = -1, fn = dh_alpha_D, alpha = 0, beta = coef(y_mod) )$x
+
+# G-est as a function of alpha; alpha = -0.2
+nleqslv( x = -1, fn = dh_alpha_D, alpha = -0.17, beta = coef(y_mod) )$x
+
+# sd as a function of alpha
+sqrt( vcov_alph_psi(psi   = nleqslv( x = -1, fn = dh_alpha_D, alpha = 0, beta = coef(y_mod) )$x, 
+                    alpha = 0, 
+                    beta  = coef(y_mod),
+                    z     = VitD$filaggrin,
+                    x     = VitD$vitd_std,
+                    n     = nrow(VitD), 
+                    y     = VitD$death)[6,6]  ) 
+
+# vcov_alph_psi(psi   = -1.558078, 
+#               alpha = 0, 
+#               beta  = coef(y_mod),
+#               z     = VitD$filaggrin,
+#               x     = VitD$vitd_std,
+#               n     = nrow(VitD), 
+#               y     = VitD$death)/nrow(VitD)
+# 
+# vcov(y_mod)
