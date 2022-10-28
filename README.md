@@ -8,8 +8,8 @@ The linear and the logistic model folders contain six files each:
 (2) Setting/Definition of the coefficients for different combinations of alpha, psi, and marginal probabilites.
 (3) Main simulation file.
 (4) Covariance matrix calculations for the G-estimator(s) and the coefficients of the association model.
-(5) Plots of the coverage probabilities as a function of alpha. 
-(6) Plots of the bias as a function of alpha.
+(5) Plots of the coverage probabilities for the causal parameters as a function of alpha. 
+(6) Plots of the bias of the G-estimators as a function of alpha.
 Vitamin D example: code for the Vitamin D data example. It contains one file.
 
 
