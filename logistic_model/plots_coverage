@@ -1,0 +1,149 @@
+### ggplot
+library(cowplot)
+library(ggplot2)
+# theme_set(theme_minimal())
+
+#theme_replace()
+
+g0_1.5 = ggplot( data = dat_cp, aes( x = alpha_range0, y = cp0_1.5) ) + 
+  geom_line(size = 1) + 
+  geom_vline(xintercept = 0,    linetype="dashed", col = "red", size = 0.8) +
+  geom_hline(yintercept = 0.95, linetype="dashed", col = "red", size = 0.8) +
+  xlab(expression(alpha)) + ylab("coverage probability")             +
+  ggtitle(alpha~"=0,"~psi~"=1.5,"~p[y]~"=0.8,"~p[x]~"=0.6")  +
+  scale_y_continuous(limits=c(0.65, 1),breaks=seq(0.7, 1, by = 0.05)) +
+  theme_minimal_grid() + 
+  theme(plot.title       = element_text(hjust = 0.5, size = 25),
+        axis.text.x = element_text(  size=20),
+        axis.text.y = element_text(  size=20), 
+        axis.title=element_text(size=20))
+
+        
+g0.5_1.5 = ggplot( data = dat_cp, aes( x = alpha_range0.5, y = cp0.5_1.5) ) + 
+  geom_line(size = 1) + 
+  geom_vline(xintercept = 0.5,    linetype="dashed", col = "red", size = 0.8) +
+  geom_hline(yintercept = 0.95, linetype="dashed", col = "red", size = 0.8) +
+  xlab(expression(alpha)) + ylab("coverage probability")             +
+  ggtitle(alpha~"=0.5,"~psi~"=1.5,"~p[y]~"=0.8,"~p[x]~"=0.6")  +
+  scale_y_continuous(limits=c(0.65, 1),breaks=seq(0.7, 1, by = 0.05)) +
+  theme_minimal_grid() + 
+  theme(plot.title       = element_text(hjust = 0.5, size = 25),
+        axis.text.x = element_text(  size=20),
+        axis.text.y = element_text(  size=20), 
+        axis.title=element_text(size=20))
+
+  
+g0_0 = ggplot( data = dat_cp, aes( x = alpha_range0, y = cp0_0) ) + 
+  geom_line(size = 1) + 
+  geom_vline(xintercept = 0,    linetype="dashed", col = "red", size = 0.8) +
+  geom_hline(yintercept = 0.95, linetype="dashed", col = "red", size = 0.8) +
+  xlab(expression(alpha)) + ylab("coverage prob.")             +
+  ggtitle(alpha~"=0,"~psi~"=0,"~p[y]~"=0.8,"~p[x]~"=0.6")  +
+  scale_y_continuous(limits=c(0.65, 1),breaks=seq(0.7, 1, by = 0.05)) +
+  theme_minimal_grid() + 
+  theme(plot.title       = element_text(hjust = 0.5, size = 25),
+        axis.text.x = element_text(  size=20),
+        axis.text.y = element_text(  size=20), 
+        axis.title=element_text(size=20))
+
+
+g0.5_0 = ggplot( data = dat_cp, aes( x = alpha_range0.5, y = cp0.5_0) ) + 
+  geom_line(size = 1) + 
+  geom_vline(xintercept = 0.5,    linetype="dashed", col = "red", size = 0.8) +
+  geom_hline(yintercept = 0.95,   linetype="dashed", col = "red", size = 0.8) +
+  xlab(expression(alpha)) + ylab("coverage prob.")             +
+  ggtitle(alpha~"=0.5,"~psi~"=0,"~p[y]~"=0.8,"~p[x]~"=0.6")  +
+  scale_y_continuous(limits=c(0.65, 1),breaks=seq(0.7, 1, by = 0.05)) +
+  theme_minimal_grid() + 
+  theme(plot.title       = element_text(hjust = 0.5, size = 25),
+        axis.text.x = element_text(size=20),
+        axis.text.y = element_text(size=20), 
+        axis.title=element_text(size=20))
+
+
+plot_grid(g0_1.5, g0.5_1.5, g0_0, g0.5_0,
+          ncol = 2, nrow = 2)
+
+# ### plots coverage prob.
+# plot( alpha_range, cp0_1.5,
+#       type        = "l",
+#       panel.first = grid(),
+#       col         = "red", 
+#       ylab        = "coverage prob.")
+# 
+# abline( h = 0.95, v = 0, lty = 3, col = "blue" )
+# 
+# plot( alpha_range, cp0.5_0,
+#       type        = "l",
+#       panel.first = grid(),
+#       col         = "red", 
+#       ylab        = "coverage prob." )
+# 
+# abline( h = 0.95, v = 0.5, lty = 3, col = "blue" )
+# 
+# plot( alpha_range, cp0.5_1.5,
+#       type        = "l",
+#       panel.first = grid(),
+#       col         = "red", 
+#       ylab        = "coverage prob." )
+# 
+# abline( h = 0.95, v = 0.5, lty = 3, col = "blue" )
+# 
+# plot( alpha_range, cp0_0,
+#       type        = "l",
+#       panel.first = grid(),
+#       col         = "red", 
+#       ylab        = "coverage prob." )
+# 
+# abline( h = 0.95, v = 0, lty = 3, col = "blue" )
+# 
+# ### mean by alpha
+# 
+# tab0_1.5 <-  aggregate( psi0_1.5 ~ alpha, 
+#                         FUN  = mean, 
+#                         data = psii )
+# 
+# tab0.5_1.5 <-  aggregate( psi0.5_1.5 ~ alpha, 
+#                           FUN  = mean, 
+#                           data = psii )
+# 
+# tab0_0     <-  aggregate( psi0_0 ~ alpha, 
+#                           FUN  = mean, 
+#                           data = psii )
+# 
+# tab0.5_0  <-  aggregate( psi0.5_0 ~ alpha, 
+#                          FUN  = mean, 
+#                          data = psii )
+# 
+# ### plots mean psi vs. alpha
+# 
+# par(bg = "cornsilk")
+# par(mfrow = c(2,2))
+# 
+# plot( tab0_1.5$alpha, tab0_1.5$psi0_1.5, type = "l", pch = 20, 
+#       col = "blue",
+#       lwd = 2,
+#       bty = "n", 
+#       panel.first = grid())
+# abline(v = 0, h = 1.5, col = "red")
+# 
+# plot( tab0.5_1.5$alpha, tab0.5_1.5$psi0.5_1.5, type = "l", pch = 20, 
+#       col = "blue",
+#       lwd = 2,
+#       bty = "n", 
+#       panel.first = grid())
+# abline(v = 0.5, h = 1.5, col = "red")
+# 
+# plot( tab0_0$alpha, tab0_0$psi0_0, type = "l", pch = 20, 
+#       col = "blue",
+#       lwd = 2,
+#       bty = "n", 
+#       panel.first = grid())
+# abline(v = 0, h = 0, col = "red")
+# 
+# plot( tab0.5_0$alpha, tab0.5_0$psi0.5_0, type = "l", pch = 20, 
+#       col = "blue",
+#       lwd = 2,
+#       bty = "n", 
+#       panel.first = grid())
+# abline(v = 0.5, h = 0, col = "red")
