@@ -1,5 +1,5 @@
 # Simulations code for sensitivity analysis of G-estimators
-Simulations and data analysis code for the paper Sensitivity [Analysis of G-estimators to Invalid Instrumental Variables by Valentin Vancak & Arvid Sjölander](https://arxiv.org/pdf/2208.05854.pdf).
+Simulations and data analysis code for the paper [Sensitivity Analysis of G-estimators to Invalid Instrumental Variables](https://arxiv.org/pdf/2208.05854.pdf) by Valentin Vancak & Arvid Sjölander.
 The repository consists of three folders: 
 Linear model; code for the linear causal regression model simulation.
 Logistic model: code for the logit causal regression model simulation (with logistic association model).
