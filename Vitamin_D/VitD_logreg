@@ -1,0 +1,141 @@
+######################################
+### Vitamin D Example ################
+### Sensitivity Analysis of G-est. ###
+######################################
+
+library(ivtools)
+library(xlsx)
+library(cowplot)
+library(nleqslv)
+source("C:\\Users\\Valentin Vancak\\Dropbox (University of Haifa)\\TA & Lectures courses\\KAROLINSKA\\Post-Doc Research\\Sensitivity Analysis\\R simulation\\Stat Med R.1 SIM\\LOGREG\\Logistic reg sim\\cov_mat_h_psi_debug.R")
+data(VitD)
+
+# write.xlsx(VitD, "VitD.xlsx", row.names = F)
+
+VitD$vitd_std <- (VitD$vitd - 20)/20
+
+### G-estimation of the causal effect (psi) of vitaminD (X) on death (Y),
+### the instrument in fillagrin (Z)
+### Using ivtools (alpha = 0); assuming valid IV
+# Instrument model 
+z_mod = glm(filaggrin ~ 1, data = VitD, family = "binomial")
+
+# Exposure model
+x_mod = glm(vitd_std ~ filaggrin, data = VitD)
+
+# Outcome model 
+y_mod = glm(death ~ vitd_std + filaggrin + filaggrin * vitd_std, 
+            data   = VitD, 
+            family = "binomial" )
+
+### The G-est. of psi
+psi_mod = ivglm(estmethod = "g", 
+                X         = "vitd_std",
+                Y         = "death",
+                fitZ.L    = z_mod,
+                fitX.L    = x_mod, 
+                fitY.LZX  = y_mod,
+                data      = VitD, 
+                link      = "logit",
+                vcov.fit  = T )
+
+summary(psi_mod)
+
+### my psi and sd
+# G-est as a function of alpha; alpha = -0.17
+nleqslv(x = -1, fn = dh_alpha_D, alpha = 0, beta = coef(y_mod) )$x
+
+# sd as a function of alpha
+sqrt( vcov_alph_psi(psi   = nleqslv( x = -1, fn = dh_alpha_D, alpha = 0, beta = coef(y_mod) )$x, 
+                    alpha = 0, 
+                    beta  = coef(y_mod),
+                    z     = VitD$filaggrin,
+                    x     = VitD$vitd_std,
+                    n     = nrow(VitD), 
+                    y     = VitD$death)[6,6]  ) 
+
+#######################################################################################
+### Psi as a function of alpha ###
+#######################################################################################
+
+# plausible values for alpha
+alpha_range = seq( -0.175, 2, length = 100 )
+
+# psi vector 
+psi_D = numeric()
+
+# estimating equation for psi
+dh_D = function(psi, alpha, beta){ 
+  sum( ( VitD$filaggrin - mean(VitD$filaggrin) ) * 
+                               plogis(beta[1]         +   beta[2] * VitD$vitd_std + 
+                               beta[3]*VitD$filaggrin +   beta[4] * VitD$vitd_std * VitD$filaggrin - 
+                               psi * VitD$vitd_std    -   alpha * VitD$filaggrin) )  
+} 
+
+# fixing alpha and beta vector; solving for psi 
+dh_alpha_D = function(x, alpha, beta)
+{
+  dh_D(psi = x, alpha, beta)
+} 
+
+# G-est as a function of alpha
+for (i in 1:length(alpha_range) ) {
+psi_D[i] <- nleqslv( x = -1, fn = dh_alpha_D, alpha = alpha_range[i], beta = coef(y_mod) )$x
+}
+
+# sd as a function of alpha
+# source("C:\\Users\\Valentin Vancak\\Dropbox (University of Haifa)\\TA & Lectures courses\\KAROLINSKA\\Post-Doc Research\\Sensitivity Analysis\\R simulation\\IV SENS ALPHA\\FIXING PSI AND ALPHA LOGREG\\cov_mat_logmod.R")
+
+sd_D  = numeric()
+cil_D = numeric()
+ciu_D = numeric()
+
+for (i in 1:length(alpha_range) ) {
+sd_D[i] <- sqrt(vcov_alph_psi(psi   = psi_D[i],
+                       alpha = alpha_range[i],
+                       beta  = coef(y_mod),
+                       z     = VitD$filaggrin,
+                       x     = VitD$vitd_std,
+                       y     = VitD$death,
+                       n     = nrow(VitD))[6, 6] )
+
+cil_D[i] = psi_D[i] - 1.96 * sd_D[i]
+ciu_D[i] = psi_D[i] + 1.96 * sd_D[i]
+
+}
+
+
+###############################################################################################
+### PLOTS #####################################################################################
+# psi and alpha data-frame
+plot( alpha_range, psi_D, 
+      type = "l", 
+      bty  = "n", 
+      panel.first = grid(), 
+      col  = "blue" )
+
+# ggplot2
+library(ggplot2)
+
+# preparing the data 
+psi_df = data.frame(alpha_range, psi_D, sd_D, cil_D, ciu_D)
+
+psi_df$cil_D = ifelse( psi_df$cil_D < -20, -Inf, psi_df$cil_D)
+psi_df$ciu_D = ifelse( psi_df$ciu_D >  20,  Inf, psi_df$ciu_D)
+
+plot_D_ci <- ggplot(data = psi_df, aes(x = alpha_range, y = psi_D)) +
+             geom_line( col = "blue", linetype = 1 ) +
+             geom_ribbon( data = psi_df, aes(ymin = cil_D, ymax = ciu_D), 
+                          alpha = 0.1) +
+             xlab(expression(alpha)) + ylab(expression(hat(psi)[G]~"("~alpha~")"))              +
+             ggtitle("G-estimator of"~psi~"as a function of"~alpha)  +
+             theme_minimal_grid() + 
+             theme(plot.title       = element_text(hjust = 0.5, size = 20),
+             axis.text.x = element_text(size = 20),
+             axis.text.y = element_text(size = 20), 
+             axis.title  = element_text(size = 25))
+
+plot_D_ci                    
+
+
+summary(sd_D)
