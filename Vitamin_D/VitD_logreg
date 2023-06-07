@@ -7,7 +7,6 @@ library(ivtools)
 library(xlsx)
 library(cowplot)
 library(nleqslv)
-source("C:\\Users\\Valentin Vancak\\Dropbox (University of Haifa)\\TA & Lectures courses\\KAROLINSKA\\Post-Doc Research\\Sensitivity Analysis\\R simulation\\Stat Med R.1 SIM\\LOGREG\\Logistic reg sim\\cov_mat_h_psi_debug.R")
 data(VitD)
 
 # write.xlsx(VitD, "VitD.xlsx", row.names = F)
@@ -59,7 +58,7 @@ sqrt( vcov_alph_psi(psi   = nleqslv( x = -1, fn = dh_alpha_D, alpha = 0, beta = 
 #######################################################################################
 
 # plausible values for alpha
-alpha_range = seq( -0.175, 2, length = 100 )
+alpha_range = seq( -0.15, 0.5, by = 0.05 )
 
 # psi vector 
 psi_D = numeric()
@@ -104,6 +103,22 @@ ciu_D[i] = psi_D[i] + 1.96 * sd_D[i]
 
 }
 
+table_vit_D <- round( data.frame(
+                       alpha = alpha_range,
+                         psi = psi_D,
+                       psi_L = cil_D, 
+                       psi_U = ciu_D,
+                          OR = exp(psi_D),
+                          OR_L = exp(cil_D),
+                          OR_U = exp(ciu_D)
+                          ), 3)
+
+library(xtable)
+
+xtable(table_vit_D, 
+       include.rownames = FALSE, 
+       digits = 3 )
+
 
 ###############################################################################################
 ### PLOTS #####################################################################################
@@ -127,13 +142,14 @@ plot_D_ci <- ggplot(data = psi_df, aes(x = alpha_range, y = psi_D)) +
              geom_line( col = "blue", linetype = 1 ) +
              geom_ribbon( data = psi_df, aes(ymin = cil_D, ymax = ciu_D), 
                           alpha = 0.1) +
+             scale_x_continuous(breaks = seq(-0.2, 0.5, by = 0.1)) +
              xlab(expression(alpha)) + ylab(expression(hat(psi)[G]~"("~alpha~")"))              +
              ggtitle("G-estimator of"~psi~"as a function of"~alpha)  +
              theme_minimal_grid() + 
              theme(plot.title       = element_text(hjust = 0.5, size = 20),
              axis.text.x = element_text(size = 20),
              axis.text.y = element_text(size = 20), 
-             axis.title  = element_text(size = 25))
+             axis.title  = element_text(size = 25)) 
 
 plot_D_ci                    
 
